@@ -5,6 +5,7 @@ RUN mvn clean package -DskipTests
 
 # Fase de ejecución
 FROM adoptopenjdk:11-jre-hotspot
-COPY --from=build /target/Codigo_TorneApp-0.0.1-SNAPSHOT.jar app.jar
+# Usamos un comodín (*) por si el nombre del JAR cambia ligeramente
+COPY --from=build /target/*.jar app.jar
 EXPOSE 8080
 ENTRYPOINT ["java","-jar","app.jar"]
