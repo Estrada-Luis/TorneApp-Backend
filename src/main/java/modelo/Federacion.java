@@ -49,4 +49,14 @@ public class Federacion implements Serializable {
     public String getTelefono() {
     	return telefono; 
     	}
+
+	public void setIdFederacion(int i) {
+		this.id_federacion = i;
+		
+	}
+}
+
+    public String getTelefono() {
+    	return telefono; 
+    	}
 }
