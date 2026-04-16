@@ -1,0 +1,73 @@
+package modelo;
+
+import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
+import javax.persistence.*;
+
+@Entity
+@Table(name = "club")
+public class Club implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int id_club;
+
+    @Column(unique = true, nullable = false)
+    private String cif;
+    
+    private String nombre;
+    private String direccion;
+    private String telefono;
+    private String correo;
+    private boolean validado = false;
+
+    @ManyToOne
+    @JoinColumn(name = "id_federacion", nullable = false)
+    private Federacion federacion;
+
+    // Relación EAGER para que al buscar el club, los equipos se carguen al momento
+    @OneToMany(mappedBy = "club", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    private Set<Equipo> equipos = new HashSet<>();
+
+    public Club() {}
+
+    public Club(String nombre, String cif, String direccion, String telefono, String correo, boolean validado, Federacion federacion) {
+        this.nombre = nombre;
+        this.cif = cif;
+        this.direccion = direccion;
+        this.telefono = telefono;
+        this.correo = correo;
+        this.validado = validado;
+        this.federacion = federacion;
+    }
+
+    // --- GETTERS ---
+    public int getIdClub() { return id_club; }
+    public String getNombre() { return nombre; }
+    public String getCif() { return cif; }
+    public String getDireccion() { return direccion; }
+    public String getTelefono() { return telefono; }
+    public String getCorreo() { return correo; }
+    public boolean isValidado() { return validado; }
+    public Federacion getFederacion() { return federacion; }
+    public Set<Equipo> getEquipos() { return equipos; }
+
+    // --- SETTERS ---
+    public void setIdClub(int id_club) { this.id_club = id_club; }
+    public void setNombre(String nombre) { this.nombre = nombre; }
+    public void setCif(String cif) { this.cif = cif; }
+    public void setDireccion(String direccion) { this.direccion = direccion; }
+    public void setTelefono(String telefono) { this.telefono = telefono; }
+    public void setCorreo(String correo) { this.correo = correo; }
+    public void setValidado(boolean validado) { this.validado = validado; }
+    public void setFederacion(Federacion federacion) { this.federacion = federacion; }
+    public void setEquipos(Set<Equipo> equipos) { this.equipos = equipos; }
+
+    @Override
+    public String toString() {
+        return nombre;
+    }
+}
