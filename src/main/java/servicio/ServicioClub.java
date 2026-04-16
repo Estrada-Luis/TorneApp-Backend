@@ -5,36 +5,53 @@ import java.util.List;
 import modelo.Club;
 import modelo.Equipo;
 import modelo.Torneo;
+import modelo.Federacion; // Importante añadir esta
 
 // Importaciones necesarias para que funcione la conexión con el móvil
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 
-@RestController // Esto le dice a Spring que esta clase atiende peticiones (como las de Retrofit)
-@RequestMapping("/api/clubes") // Esta es la ruta base que usaremos en el móvil
+@RestController 
+@RequestMapping("/api/clubes") 
 public class ServicioClub {
 
     private DAO<Club> clubDAO = new DAO<>(Club.class);
+    private DAO<Federacion> fedDAO = new DAO<>(Federacion.class); // Necesario para buscar la federación
 
-    // --- MÉTODO PARA EL MÓVIL ---
-    // Cuando el móvil haga un POST a /api/clubes/registrar, se ejecutará esto
+    // --- MÉTODO PARA EL MÓVIL (CORREGIDO) ---
     @PostMapping("/registrar")
     public ResponseEntity<String> registrarDesdeMovil(@RequestBody Club club) {
         try {
-            crearClub(club); // Llama a tu método de siempre
+            // --- PARCHE DE SEGURIDAD PARA EL ID DE FEDERACIÓN ---
+            // Si el móvil manda ID 0 o nulo, le asignamos la Federación 1 nosotros
+            if (club.getFederacion() == null || club.getFederacion().getIdFederacion() == 0) {
+                // Buscamos la federación 1 en la base de datos
+                Federacion fedFija = fedDAO.read(1); 
+                
+                // Si por lo que sea no la encuentra, la creamos de emergencia
+                if (fedFija == null) {
+                    fedFija = new Federacion();
+                    fedFija.setIdFederacion(1);
+                }
+                club.setFederacion(fedFija);
+            }
+            // ---------------------------------------------------
+
+            crearClub(club); 
             return ResponseEntity.ok("Club guardado con éxito");
         } catch (Exception e) {
+            e.printStackTrace(); // Esto sacará el error detallado en el log de Render
             return ResponseEntity.status(500).body("Error al guardar: " + e.getMessage());
         }
     }
 
-    // --- MÉTODOS DE CONSULTA PARA EL MÓVIL (Opcionales por si los necesitas) ---
+    // --- MÉTODOS DE CONSULTA PARA EL MÓVIL ---
     @GetMapping("/listar")
     public List<Club> listarParaMovil() {
         return listarClubes();
     }
 
-    // --- TU LÓGICA DE SIEMPRE (No tocamos nada de lo que ya tenías) ---
+    // --- TU LÓGICA DE SIEMPRE ---
     
     public void crearClub(Club club) {
         clubDAO.create(club);
