@@ -52,11 +52,5 @@ public class Federacion implements Serializable {
 
 	public void setIdFederacion(int i) {
 		this.id_federacion = i;
-		
 	}
-}
-
-    public String getTelefono() {
-    	return telefono; 
-    	}
 }
