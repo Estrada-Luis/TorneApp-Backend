@@ -4,6 +4,8 @@ import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 import javax.persistence.*;
+// IMPORTANTE: Asegúrate de que esta librería esté en tu pom.xml
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Entity
 @Table(name = "club")
@@ -21,11 +23,12 @@ public class Club implements Serializable {
     private String nombre;
     private String direccion;
     private String telefono;
+
+    // Con esto aceptamos "email" desde el móvil o "correo" desde el PC
+    @JsonProperty("correo")
     private String correo;
     
-    // AQUÍ AÑADIMOS EL PASSWORD
     private String password;
-    
     private boolean validado = false;
 
     @ManyToOne
@@ -37,7 +40,6 @@ public class Club implements Serializable {
 
     public Club() {}
 
-    // Actualizamos el constructor para incluir el password
     public Club(String nombre, String cif, String direccion, String telefono, String correo, String password, boolean validado, Federacion federacion) {
         this.nombre = nombre;
         this.cif = cif;
@@ -55,8 +57,11 @@ public class Club implements Serializable {
     public String getCif() { return cif; }
     public String getDireccion() { return direccion; }
     public String getTelefono() { return telefono; }
+    
+    @JsonProperty("correo")
     public String getCorreo() { return correo; }
-    public String getPassword() { return password; } // Nuevo Getter
+    
+    public String getPassword() { return password; }
     public boolean isValidado() { return validado; }
     public Federacion getFederacion() { return federacion; }
     public Set<Equipo> getEquipos() { return equipos; }
@@ -67,8 +72,16 @@ public class Club implements Serializable {
     public void setCif(String cif) { this.cif = cif; }
     public void setDireccion(String direccion) { this.direccion = direccion; }
     public void setTelefono(String telefono) { this.telefono = telefono; }
+
+    // TRADUCTOR 1: Si el JSON dice "correo"
+    @JsonProperty("correo")
     public void setCorreo(String correo) { this.correo = correo; }
-    public void setPassword(String password) { this.password = password; } // Nuevo Setter
+
+    // TRADUCTOR 2: Si el JSON dice "email" (Como suele enviar Android)
+    @JsonProperty("email")
+    public void setCorreoDesdeEmail(String email) { this.correo = email; }
+
+    public void setPassword(String password) { this.password = password; }
     public void setValidado(boolean validado) { this.validado = validado; }
     public void setFederacion(Federacion federacion) { this.federacion = federacion; }
     public void setEquipos(Set<Equipo> equipos) { this.equipos = equipos; }
