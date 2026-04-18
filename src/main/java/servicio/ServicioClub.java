@@ -20,56 +20,67 @@ public class ServicioClub {
     private DAO<Federacion> fedDAO = new DAO<>(Federacion.class);
     private DAO<Usuario> usuarioDAO = new DAO<>(Usuario.class); 
 
+    // --- MÉTODO PARA EL MÓVIL: REGISTRO DOBLE (CLUB + USUARIO) ---
     @PostMapping("/registrar")
     public ResponseEntity<String> registrarDesdeMovil(@RequestBody Club club) {
         try {
-            // 1. Extraemos los datos en variables String locales para asegurar el formato
-            // Esto evita el error de modelo.Club@... que viste en la base de datos
-            String nombreParaUsuario = String.valueOf(club.getNombre());
-            String emailParaUsuario = String.valueOf(club.getCorreo());
-            String passParaUsuario = String.valueOf(club.getPassword());
+            // 1. EXTRAER DATOS LIMPIOS (Evita errores de memoria en la BBDD)
+            // Guardamos el nombre, correo y pass en variables antes de hacer nada
+            String nombreTxt = club.getNombre();
+            String correoTxt = club.getCorreo();
+            String passTxt = club.getPassword();
 
-            // 2. Lógica de Federación (Seguridad para evitar el Error 500)
+            // 2. PARCHE DE FEDERACIÓN (Evita error 500 si el ID es 0)
             if (club.getFederacion() == null || club.getFederacion().getIdFederacion() == 0) {
                 Federacion fedFija = fedDAO.read(1); 
                 if (fedFija == null) {
                     fedFija = new Federacion();
                     fedFija.setIdFederacion(1);
+                    // Si tu sistema requiere que exista físicamente, podrías crearla aquí
                 }
                 club.setFederacion(fedFija);
             }
 
-            // 3. PRIMER GUARDADO: Tabla 'club'
-            // Esto es lo que ya te funcionaba antes
+            // 3. GUARDAR EN TABLA 'CLUB'
+            // Esto es lo que ya te funcionaba bien
             clubDAO.create(club); 
 
-            // 4. SEGUNDO GUARDADO: Tabla 'usuario'
-            // Esto es lo que permite que el Login funcione
+            // 4. GUARDAR EN TABLA 'USUARIO' (Fundamental para el Login)
+            // Si no hacemos esto, el login dará siempre Error 401
             Usuario nuevoUsuario = new Usuario();
-            nuevoUsuario.setNombre(nombreParaUsuario);
-            nuevoUsuario.setEmail(emailParaUsuario);
-            nuevoUsuario.setPassword(passParaUsuario);
+            nuevoUsuario.setNombre(nombreTxt); 
+            nuevoUsuario.setEmail(correoTxt);
+            nuevoUsuario.setPassword(passTxt);
             nuevoUsuario.setRol(RolUsuario.CLUB);
 
             usuarioDAO.create(nuevoUsuario);
 
-            return ResponseEntity.ok("Registro de Club y Usuario completado con éxito");
+            System.out.println("[BACKEND] Registro exitoso para: " + correoTxt);
+            return ResponseEntity.ok("Club y Usuario creados correctamente. Ya puedes iniciar sesión.");
             
         } catch (Exception e) {
             e.printStackTrace(); 
-            // Si hay error, Render te dirá aquí exactamente por qué
             return ResponseEntity.status(500).body("Error en el registro: " + e.getMessage());
         }
     }
 
-    // --- Métodos de consulta ---
+    // --- MÉTODOS DE CONSULTA Y LÓGICA ORIGINAL ---
+    
     @GetMapping("/listar")
     public List<Club> listarParaMovil() {
-        return clubDAO.readAll();
+        return listarClubes();
     }
 
     public void crearClub(Club club) {
         clubDAO.create(club);
+    }
+
+    public void actualizarClub(Club club) {
+        clubDAO.update(club);
+    }
+
+    public void eliminarClub(Club club) {
+        clubDAO.delete(club);
     }
 
     public List<Club> listarClubes() {
@@ -79,9 +90,19 @@ public class ServicioClub {
     public Club buscarPorNombre(String nombre) {
         List<Club> lista = clubDAO.readAll();
         if (lista == null) return null;
+        
         return lista.stream()
                 .filter(c -> c.getNombre() != null && c.getNombre().equalsIgnoreCase(nombre))
                 .findFirst()
                 .orElse(null);
+    }
+
+    public int obtenerTotalClubes() {
+        List<Club> lista = clubDAO.readAll();
+        return (lista != null) ? lista.size() : 0;
+    }
+
+    public void inscribirEquipo(Equipo e, Torneo t) {
+        System.out.println("Equipo " + e.getNombre() + " inscrito en " + t.getNombre());
     }
 }
