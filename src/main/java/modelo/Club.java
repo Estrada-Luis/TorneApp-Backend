@@ -4,13 +4,10 @@ import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 import javax.persistence.*;
-// IMPORTANTE: Asegúrate de que esta librería esté en tu pom.xml
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Entity
 @Table(name = "club")
 public class Club implements Serializable {
-
     private static final long serialVersionUID = 1L;
 
     @Id
@@ -19,52 +16,48 @@ public class Club implements Serializable {
 
     @Column(unique = true, nullable = false)
     private String cif;
-    
+
     private String nombre;
     private String direccion;
     private String telefono;
-
-    // Con esto aceptamos "email" desde el móvil o "correo" desde el PC
-    @JsonProperty("correo")
     private String correo;
     
-    private String password;
+    // --- IMPORTANTE: Atributos de validación ---
     private boolean validado = false;
+    private String motivoRechazo; // <--- ESTO ES LO QUE FALTABA
 
     @ManyToOne
     @JoinColumn(name = "id_federacion", nullable = false)
     private Federacion federacion;
 
-    @OneToMany(mappedBy = "club", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "club", cascade = {CascadeType.ALL}, fetch = FetchType.EAGER)
     private Set<Equipo> equipos = new HashSet<>();
 
     public Club() {}
 
-    public Club(String nombre, String cif, String direccion, String telefono, String correo, String password, boolean validado, Federacion federacion) {
+    public Club(String nombre, String cif, String direccion, String telefono, String correo, boolean validado, Federacion federacion) {
         this.nombre = nombre;
         this.cif = cif;
         this.direccion = direccion;
         this.telefono = telefono;
         this.correo = correo;
-        this.password = password;
         this.validado = validado;
         this.federacion = federacion;
     }
 
     // --- GETTERS ---
-    public int getIdClub() { return id_club; }
-    public String getNombre() { return nombre; }
-    public String getCif() { return cif; }
-    public String getDireccion() { return direccion; }
-    public String getTelefono() { return telefono; }
+    public int getIdClub() { return this.id_club; }
+    public String getNombre() { return this.nombre; }
+    public String getCif() { return this.cif; }
+    public String getDireccion() { return this.direccion; }
+    public String getTelefono() { return this.telefono; }
+    public String getCorreo() { return this.correo; }
+    public boolean isValidado() { return this.validado; }
+    public Federacion getFederacion() { return this.federacion; }
+    public Set<Equipo> getEquipos() { return this.equipos; }
     
-    @JsonProperty("correo")
-    public String getCorreo() { return correo; }
-    
-    public String getPassword() { return password; }
-    public boolean isValidado() { return validado; }
-    public Federacion getFederacion() { return federacion; }
-    public Set<Equipo> getEquipos() { return equipos; }
+    // Getter nuevo
+    public String getMotivoRechazo() { return this.motivoRechazo; }
 
     // --- SETTERS ---
     public void setIdClub(int id_club) { this.id_club = id_club; }
@@ -72,22 +65,16 @@ public class Club implements Serializable {
     public void setCif(String cif) { this.cif = cif; }
     public void setDireccion(String direccion) { this.direccion = direccion; }
     public void setTelefono(String telefono) { this.telefono = telefono; }
-
-    // TRADUCTOR 1: Si el JSON dice "correo"
-    @JsonProperty("correo")
     public void setCorreo(String correo) { this.correo = correo; }
-
-    // TRADUCTOR 2: Si el JSON dice "email" (Como suele enviar Android)
-    @JsonProperty("email")
-    public void setCorreoDesdeEmail(String email) { this.correo = email; }
-
-    public void setPassword(String password) { this.password = password; }
     public void setValidado(boolean validado) { this.validado = validado; }
     public void setFederacion(Federacion federacion) { this.federacion = federacion; }
     public void setEquipos(Set<Equipo> equipos) { this.equipos = equipos; }
+    
+    // Setter nuevo (El que arregla el error del controlador)
+    public void setMotivoRechazo(String motivoRechazo) { this.motivoRechazo = motivoRechazo; }
 
     @Override
     public String toString() {
-        return nombre;
+        return this.nombre;
     }
 }
