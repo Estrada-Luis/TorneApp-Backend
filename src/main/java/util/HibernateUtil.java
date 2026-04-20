@@ -1,7 +1,5 @@
 package util;
 
-import java.io.IOException;
-import java.net.ServerSocket;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.AvailableSettings;
@@ -9,7 +7,6 @@ import org.hibernate.cfg.Configuration;
 
 public class HibernateUtil {
 
-    // ✅ CONFIGURACIÓN PARA CLEVER CLOUD (LA NUBE)
     private static final String HOST = "bmgyqgpiytixcmnovr8g-mysql.services.clever-cloud.com";
     private static final String DB = "bmgyqgpiytixcmnovr8g";
     private static final String USER = "uuh5lv0z7lkuqegx";
@@ -38,10 +35,8 @@ public class HibernateUtil {
 
     private static void creaSessionFactory() {
         try {
-            // Cargamos la configuración base del archivo XML
             Configuration config = new Configuration().configure("hibernate.cfg.xml");
 
-            // Sobrescribimos con los datos de la nube
             incluyePropiedades(config);
             incluyeClases(config);
 
@@ -50,12 +45,12 @@ public class HibernateUtil {
 
         } catch (Throwable e) {
             System.err.println("❌ ERROR EN LA SESIÓN REMOTA: " + e.getMessage());
+            e.printStackTrace();
             throw new ExceptionInInitializerError(e);
         }
     }
 
     private static void incluyePropiedades(Configuration config) {
-        // Montamos la URL con los nuevos datos del HOST y la DB
         String URL = String.format("%s%s:%d/%s?serverTimezone=UTC", 
                                    SUBPROTOCOL, HOST, PORT, DB);
 
@@ -66,6 +61,12 @@ public class HibernateUtil {
         config.setProperty("hibernate.dialect", "org.hibernate.dialect.MySQL8Dialect");
         config.setProperty("hibernate.show_sql", "true");
         config.setProperty("hibernate.current_session_context_class", "thread");
+
+        // --- LAS LÍNEAS QUE SALVAN TU PROYECTO ---
+        // Forzamos el pool a 2 desde aquí también para asegurar el límite de Clever Cloud
+        config.setProperty("hibernate.connection.pool_size", "2");
+        config.setProperty("hibernate.connection.release_mode", "after_transaction");
+        config.setProperty("hibernate.temp.use_jdbc_metadata_defaults", "false");
     }
 
     private static void incluyeClases(Configuration config) {
