@@ -5,17 +5,18 @@
 <hibernate-configuration>
     <session-factory>
         <property name="connection.driver_class">com.mysql.cj.jdbc.Driver</property>
-        
         <property name="connection.url">jdbc:mysql://bmgyqgpiytixcmnovr8g-mysql.services.clever-cloud.com:3306/bmgyqgpiytixcmnovr8g?serverTimezone=UTC</property>
-        
         <property name="connection.username">uuh5lv0z7lkuqegx</property>
-        
-        <property name="connection.password">X04B3oWLty3SIGd4SMN4</property> 
+        <property name="connection.password">X04B3oWLty3SIGd4SMN4</property>
 
         <property name="dialect">org.hibernate.dialect.MySQL8Dialect</property>
         <property name="show_sql">true</property>
         <property name="current_session_context_class">thread</property>
         <property name="hbm2ddl.auto">update</property>
+
+        <property name="hibernate.connection.pool_size">2</property>
+        <property name="hibernate.connection.release_mode">after_transaction</property>
+        <property name="hibernate.temp.use_jdbc_metadata_defaults">false</property>
 
         <mapping class="modelo.Usuario"/>
         <mapping class="modelo.Federacion"/>
