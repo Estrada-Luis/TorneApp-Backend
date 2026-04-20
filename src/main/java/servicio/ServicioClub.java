@@ -22,23 +22,18 @@ public class ServicioClub {
 
     /**
      * Registro desde el móvil.
-     * Crea un Club y un Usuario vinculado para el login.
      */
     @PostMapping("/registrar")
     public ResponseEntity<String> registrarDesdeMovil(@RequestBody Club club) {
         try {
-            // 1. Extraemos los datos del club enviado por el móvil
-            // IMPORTANTE: Asegúrate de que en Club.java el método sea getCorreo()
             String nombreTxt = club.getNombre();
             String correoTxt = club.getCorreo(); 
             String passTxt = club.getPassword();
 
-            // Validación básica para evitar NullPointerException
             if (correoTxt == null || passTxt == null) {
                 return ResponseEntity.status(400).body("Error: Datos incompletos (email o password)");
             }
 
-            // 2. Asignación de Federación (Parche para evitar error 500)
             if (club.getFederacion() == null || club.getFederacion().getIdFederacion() == 0) {
                 Federacion fedFija = fedDAO.read(1); 
                 if (fedFija == null) {
@@ -48,18 +43,14 @@ public class ServicioClub {
                 club.setFederacion(fedFija);
             }
 
-            // 3. Guardar el Club en la base de datos
             clubDAO.create(club); 
 
-            // 4. Crear el Usuario para que pueda hacer Login
             Usuario nuevoUsuario = new Usuario();
             nuevoUsuario.setNombre(nombreTxt); 
-            nuevoUsuario.setEmail(correoTxt); // Usamos el setter de tu clase Usuario
+            nuevoUsuario.setEmail(correoTxt); 
             nuevoUsuario.setPassword(passTxt);
             nuevoUsuario.setRol(RolUsuario.CLUB);
-            
-            // Sincronizamos el estado de validación inicial
-            nuevoUsuario.setValidado(false);
+            nuevoUsuario.setValidado(false); // Sincronizado con el estado inicial
 
             usuarioDAO.create(nuevoUsuario);
 
@@ -79,6 +70,32 @@ public class ServicioClub {
         return clubDAO.readAll();
     }
 
+    /**
+     * MÉTODO CLAVE: El móvil llama aquí para ver si el club ha sido rechazado
+     * Ruta: GET /api/clubes/email/{email}
+     */
+    @GetMapping("/email/{email}")
+    public ResponseEntity<Club> obtenerPorEmail(@PathVariable String email) {
+        try {
+            List<Club> lista = clubDAO.readAll();
+            if (lista == null) return ResponseEntity.notFound().build();
+            
+            // Buscamos el club que coincida con el correo enviado
+            Club clubEncontrado = lista.stream()
+                    .filter(c -> c.getCorreo() != null && c.getCorreo().equalsIgnoreCase(email))
+                    .findFirst()
+                    .orElse(null);
+
+            if (clubEncontrado != null) {
+                return ResponseEntity.ok(clubEncontrado);
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(500).build();
+        }
+    }
+
     @PutMapping("/actualizar")
     public ResponseEntity<String> actualizar(@RequestBody Club club) {
         try {
@@ -89,7 +106,7 @@ public class ServicioClub {
         }
     }
 
-    // --- MÉTODOS COMPLEMENTARIOS ---
+    // --- MÉTODOS COMPLEMENTARIOS (Lógica para el Escritorio) ---
 
     public void crearClub(Club club) {
         clubDAO.create(club);
@@ -111,10 +128,8 @@ public class ServicioClub {
                 .findFirst()
                 .orElse(null);
     }
- // NO BORRES NADA, SOLO AÑADE ESTO AL FINAL DE LA CLASE
+
     public void inscribirEquipo(Equipo e, Torneo t) {
-        // Aquí puedes añadir lógica en el futuro, por ahora 
-        // lo dejamos para que el escritorio no dé error.
         System.out.println("Inscribiendo equipo: " + e.getNombre() + " en torneo: " + t.getNombre());
     }
 }
