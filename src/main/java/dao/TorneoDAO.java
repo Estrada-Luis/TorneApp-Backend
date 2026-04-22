@@ -13,8 +13,7 @@ public class TorneoDAO extends DAO<Torneo> {
     }
 
     /**
-     * ✅ TORNEOS INSCRITOS (Tercera foto)
-     * Busca torneos donde el club tiene equipos participando.
+     * ✅ TERCERA FOTO (Inscritos)
      */
     public List<Torneo> findInscritosByClub(int idClub) {
         Session session = HibernateUtil.getCurrentSession();
@@ -22,7 +21,7 @@ public class TorneoDAO extends DAO<Torneo> {
         try {
             session.beginTransaction();
             
-            // SQL Nativo: Une Torneo -> Participa -> Equipo y filtra por id_club
+            // SQL Nativo usando nombres de columnas reales de tus fotos
             String sql = "SELECT t.* FROM torneo t " +
                          "INNER JOIN participa p ON t.id_torneo = p.id_torneo " +
                          "INNER JOIN equipo e ON p.id_equipo = e.id_equipo " +
@@ -41,8 +40,7 @@ public class TorneoDAO extends DAO<Torneo> {
     }
 
     /**
-     * ✅ TORNEOS ORGANIZADOS
-     * Busca torneos donde el ID del club organizador coincide.
+     * ✅ ORGANIZADOS
      */
     public List<Torneo> findOrganizadosByClub(int idClub) {
         Session session = HibernateUtil.getCurrentSession();
@@ -50,8 +48,7 @@ public class TorneoDAO extends DAO<Torneo> {
         try {
             session.beginTransaction();
             
-            // SQL Nativo: Filtra directamente en la tabla torneo por la columna id_club
-            // Ajusta "id_club_organizador" si el nombre de tu columna es distinto (ej: id_club)
+            // Basado en tu primera foto, la columna es 'id_club'
             String sql = "SELECT * FROM torneo WHERE id_club = :idClub";
             
             lista = session.createNativeQuery(sql, Torneo.class)
