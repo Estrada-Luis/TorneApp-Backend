@@ -27,7 +27,8 @@ public class ParticipaDAO extends DAO<Participa> {
     }
 
     /**
-     * 🚀 CORRECCIÓN CLAVE: Accedemos a p.id.idTorneo para que el filtro funcione con la clave compuesta.
+     * Obtiene los equipos inscritos. 
+     * He cambiado la consulta para que sea más robusta con Hibernate.
      */
     public List<Equipo> getEquiposPorTorneo(int idTorneo) {
         Session session = HibernateUtil.getCurrentSession();
@@ -35,8 +36,11 @@ public class ParticipaDAO extends DAO<Participa> {
         try {
             session.beginTransaction();
             
-            // Cambiamos p.torneo.idTorneo por p.id.idTorneo
-            String hql = "select e from Participa p join fetch p.equipo e where p.id.idTorneo = :id";
+            // Usamos una consulta que busca por el objeto Torneo completo
+            // Esto obliga a Hibernate a encontrar la relación sí o sí
+            String hql = "SELECT p.equipo FROM Participa p " +
+                         "JOIN FETCH p.equipo " +
+                         "WHERE p.torneo.idTorneo = :id";
             
             equipos = session.createQuery(hql, Equipo.class)
                     .setParameter("id", idTorneo)
@@ -45,53 +49,23 @@ public class ParticipaDAO extends DAO<Participa> {
             session.getTransaction().commit();
         } catch (Exception e) {
             if (session.getTransaction().isActive()) session.getTransaction().rollback();
-            e.printStackTrace();
+            System.err.println("ERROR en ParticipaDAO: " + e.getMessage());
         }
         return equipos;
     }
 
-    /**
-     * 🚀 CORRECCIÓN: Filtro por clave compuesta.
-     */
     public List<Participa> getParticipacionesPorTorneo(int idTorneo) {
         Session session = HibernateUtil.getCurrentSession();
         List<Participa> lista = new ArrayList<>();
         try {
             session.beginTransaction();
-
-            // Cambiamos p.torneo.idTorneo por p.id.idTorneo
-            String hql = "from Participa p join fetch p.equipo join fetch p.torneo where p.id.idTorneo = :id";
-            
+            String hql = "FROM Participa p JOIN FETCH p.equipo JOIN FETCH p.torneo WHERE p.torneo.idTorneo = :id";
             lista = session.createQuery(hql, Participa.class)
                     .setParameter("id", idTorneo)
                     .getResultList();
-
             session.getTransaction().commit();
         } catch (Exception e) {
             if (session.getTransaction().isActive()) session.getTransaction().rollback();
-            e.printStackTrace();
-        }
-        return lista;
-    }
-
-    public List<Participa> findByClub(int idClub) {
-        Session session = HibernateUtil.getCurrentSession();
-        List<Participa> lista = new ArrayList<>();
-        try {
-            session.beginTransaction();
-            
-            // Aquí p.equipo.club.idClub suele funcionar bien porque no es parte de la PK
-            String hql = "from Participa p join fetch p.torneo join fetch p.equipo " +
-                         "where p.equipo.club.idClub = :idClub";
-            
-            lista = session.createQuery(hql, Participa.class)
-                    .setParameter("idClub", idClub)
-                    .getResultList();
-            
-            session.getTransaction().commit();
-        } catch (Exception e) {
-            if (session.getTransaction().isActive()) session.getTransaction().rollback();
-            e.printStackTrace();
         }
         return lista;
     }
