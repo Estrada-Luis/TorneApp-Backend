@@ -27,8 +27,8 @@ public class ParticipaDAO extends DAO<Participa> {
     }
 
     /**
-     * Obtiene los equipos inscritos. 
-     * He cambiado la consulta para que sea más robusta con Hibernate.
+     * 🚀 ESTA ES LA VERSIÓN DEFINITIVA (SQL NATIVO)
+     * Al usar SQL puro, nos saltamos cualquier problema de nombres de variables en Java.
      */
     public List<Equipo> getEquiposPorTorneo(int idTorneo) {
         Session session = HibernateUtil.getCurrentSession();
@@ -36,30 +36,33 @@ public class ParticipaDAO extends DAO<Participa> {
         try {
             session.beginTransaction();
             
-            // Usamos una consulta que busca por el objeto Torneo completo
-            // Esto obliga a Hibernate a encontrar la relación sí o sí
-            String hql = "SELECT p.equipo FROM Participa p " +
-                         "JOIN FETCH p.equipo " +
-                         "WHERE p.torneo.idTorneo = :id";
+            // Usamos los nombres reales de las tablas y columnas de tu DB
+            String sql = "SELECT e.* FROM equipo e " +
+                         "INNER JOIN participa p ON e.id_equipo = p.id_equipo " +
+                         "WHERE p.id_torneo = :id";
             
-            equipos = session.createQuery(hql, Equipo.class)
+            equipos = session.createNativeQuery(sql, Equipo.class)
                     .setParameter("id", idTorneo)
                     .getResultList();
 
             session.getTransaction().commit();
         } catch (Exception e) {
             if (session.getTransaction().isActive()) session.getTransaction().rollback();
-            System.err.println("ERROR en ParticipaDAO: " + e.getMessage());
+            System.err.println("ERROR CRÍTICO EN DAO: " + e.getMessage());
         }
         return equipos;
     }
 
+    /**
+     * También actualizamos este para que sea consistente
+     */
     public List<Participa> getParticipacionesPorTorneo(int idTorneo) {
         Session session = HibernateUtil.getCurrentSession();
         List<Participa> lista = new ArrayList<>();
         try {
             session.beginTransaction();
-            String hql = "FROM Participa p JOIN FETCH p.equipo JOIN FETCH p.torneo WHERE p.torneo.idTorneo = :id";
+            // Aquí usamos p.id.idTorneo que es la forma más directa en HQL para claves compuestas
+            String hql = "FROM Participa p JOIN FETCH p.equipo JOIN FETCH p.torneo WHERE p.id.idTorneo = :id";
             lista = session.createQuery(hql, Participa.class)
                     .setParameter("id", idTorneo)
                     .getResultList();
