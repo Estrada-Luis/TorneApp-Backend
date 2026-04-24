@@ -85,12 +85,14 @@ public class ServicioTorneo {
 
     // --- ⚽ EQUIPOS E INSCRIPCIONES ---
 
-    @PostMapping("/torneos/inscribir/{idTorneo}/{idEquipo}")
+ // ✅ ASÍ DEBE QUEDAR EN ECLIPSE (Sustituye el anterior)
+    @PostMapping("/torneos/inscribir") // <-- QUITA LAS LLAVES DE AQUÍ
     public ResponseEntity<Void> inscribirEquipo(@RequestParam int idTorneo, @RequestParam int idEquipo) {
         try {
             participaDAO.inscribir(idTorneo, idEquipo);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
+            e.printStackTrace(); // Esto te ayudará a ver errores en el log de Render
             return ResponseEntity.internalServerError().build();
         }
     }
