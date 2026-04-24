@@ -5,6 +5,7 @@ import java.util.List;
 import javax.persistence.*;
 // Importante: Estos dos imports gestionan la serialización JSON
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Entity
 @Table(name = "equipo")
@@ -12,10 +13,12 @@ public class Equipo implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
+ // En tu clase Equipo del Backend:
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @JsonProperty("idEquipo") // 🚩 Añade esto
     private int id_equipo;
-
+    
     @Column(nullable = false, length = 100)
     private String nombre;
 
